@@ -3,7 +3,7 @@
     "path": "~/Quant/Philosophy of Quant/config.yaml",
     "project_path": "config.yaml",
     "type": "yaml",
-    "hash": "362226024",
+    "hash": "4159883211",
     "contents": "",
     "dirty": false,
     "created": 1625202990025.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "10,23",
+        "cursorPosition": "0,10",
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1625218329,
+    "lastKnownWriteTime": 1625218486,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1625218329135,
+    "last_content_update": 1625218486518,
     "read_only": false,
     "read_only_alternatives": []
 }
