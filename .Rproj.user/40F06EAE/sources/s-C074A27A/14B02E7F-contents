@@ -1,0 +1,23 @@
+---
+title: "Not just pretty pictures..."
+author: "Ramshreyas Rao"
+date: 2021-02-07T21:13:14-05:00
+categories: ["General"]
+tags: ["General"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+...but just to kick things off with this blog, here's one of this year's SENSEX. 
+
+Foreshadowing much? 
+
+Watch this space.
+
+```{r, warning=FALSE, message=FALSE}
+library(quantmod)
+getSymbols("^BSESN", src = "yahoo")
+chartSeries(BSESN, TA = 'addBBands();addVo();addMACD()', subset='2021')
+```
