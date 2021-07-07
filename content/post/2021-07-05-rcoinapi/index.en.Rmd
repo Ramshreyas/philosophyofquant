@@ -1,5 +1,5 @@
 ---
-title: RCoinAPI
+title: RCoinAPI - Part 1
 author: Ramshreyas Rao
 date: '2021-07-05'
 slug: []
@@ -30,9 +30,27 @@ sequenceDiagrams:
 
 # An R package for the CoinAPI.io REST API
 
-Requires an API key: https://www.coinapi.io/pricing?apikey
+This is the first in a series of posts detailing my first R package :smile:, providing access to CoinAPI.io's REST API. 
 
-Documentation: https://docs.coinapi.io/
+The goal with this package is to closely match the wonderful [Quantmod](https://cran.r-project.org/web/packages/quantmod/quantmod.pdf), so that you can add Crypto to your Quant workflow using CoinAPI data with as little pain as possible.
+
+In this series, we'll use RCoinAPI to get Crypto data, create a trading strategy, and backtest it with [quantstrat](https://github.com/braverock/quantstrat). :sunglasses:
+
+## Before you start
+
+Documentation: https://github.com/Ramshreyas/rcoinapi
+
+## Requirements
+
+A working R installation with [devtools](https://www.r-project.org/nosvn/pandoc/devtools.html) installed.
+
+An API key: https://www.coinapi.io/pricing?apikey. The free one will do for our tutorial.
+
+A basic understanding of [Crypto]()
+
+A basic understanding of [indicators]()
+
+Access to :coffee:
 
 ## Installation
 
@@ -56,158 +74,41 @@ Load the library
 library(rcoinapi)
 ```
 
-Set your API key (Get your API key at https://www.coinapi.io/pricing?apikey)
+Set your API key (Get your free API key at https://www.coinapi.io/pricing?apikey)
 
 ``` r
 setApiKey("XXXXXXXXXXXXXXX")
 ```
 
-## Usage
-
-# Metadata
-
-List all Exchanges, with details
+Test if it's working by getting the list of exchanges that CoinAPI gives access to
 
 ``` r
 getExchanges()
-getExchanges("FTX")
 ```
 
-List all Exchange Icons
+## THIS IS NOT FINANCIAL ADVICE
+
+\'nuff said. :triumph:
+
+## Your first crypto trading strategy
+
+Any trading strategy helps you make only two decisions:
+
+- When to buy
+- When to sell
+
+That's. It. If your strategy enables you to buy lower than you sell more often than not, you are making money (Ignoring some pesky but important funding issues that can bankrupt you before you make money etc... but we're not going to dwell on it). 
+
+Probably the most commonly (and therefore the least likely to :full_moon:) strategy is the [Golden/Death cross](https://academy.binance.com/en/articles/golden-cross-and-death-cross-explained):
+
+- BUY when the 50-day moving average crosses above the 200-day moving average
+- SELL when the 50-day moving average crosses below the 200-day moving average
+
+Let's test this against historical data of BTC/USD and see how it works!
+
+### Step 1 - get historical prices of BTC. 
+
+Let's get historical prices of BTC/USD from Binance
 
 ``` r
-getExchangeIcons(32)
-```
-List all Assets
 
-``` r
-getAssets()
-getAssets("BTC")
-```
-List all Asset Icons
-
-``` r
-getAssetIcons(32)
-```
-List all Symbols
-
-``` r
-getCryptoSymbols()
-getCryptoSymbols(filterSymbolId = "BTC")
-getCryptoSymbols(filterSymbolId = "BTC", filterAssetId = "USD")
-getCryptoSymbols(filterSymbolId = "BTC", filterAssetId = "USD", exchangeId = "FTX")
-```
-
-# Exchange Rates
-
-Get exchange rate between pair of requested assets at specific or current time.
-
-``` r
-getExchangeRate("BTC", "USD")
-```
-Get the current exchange rate between requested asset and all other assets.
-
-``` r
-getAllExchangeRates("BTC")
-```
-Get valid periods for historical exchange rates queries
-
-``` r
-getHistoricalExchangeRatePeriods()
-```
-Get the historical exchange rates between two assets as an XTS object for a given time period
-
-``` r
-getHistoricalExchangeRates("BTC", "USD", "1HRS", "2016-01-01T00:00:00", "2016-02-01T00:00:00", limit = 25)
-```
-
-# OHLCV
-
-Get valid period ids for OHLCV requests
-
-``` r
-getOHLCVPeriods()
-```
-Get OHLCV latest timeseries data returned in time descending order. Data can be requested by the period and symbol or asset pairs.
-If asset pairs are used then timeseries in the response will contain data consolidated across all most legitimate SPOT markets which
-contain both assets in any order.
-
-``` r
-getLatestOHLCV("BITSTAMP_SPOT_BTC_USD", "1MIN", limit = 25)
-getLatestOHLCV("BTC", "USD", periodId = "1MIN", limit = 25)
-```
-Get OHLCV timeseries data returned in time ascending order. Data can be requested by the period and symbol or asset pairs.
-If asset pairs are used then timeseries in the response will contain data consolidated across all most legitimate SPOT
-markets which contain both assets in any order..
-
-``` r
-getHistoricalOHLCV("BTC", "USD", periodId = "1MIN", timeStart = "2016-01-01T00:00:00", limit = 25)
-```
-
-# Trades
-
-Get latest trades from all symbols up to 1 minute ago or get latest trades from a specific symbol without time limitation. 
-Latest data is always returned in time descending order.
-
-``` r
-getTrades()
-getTrades(filterSymbol = "BTC", limit = 25)
-getTrades(symbol = "BITSTAMP_SPOT_BTC_USD", limit = 25)
-```
-Get historical transactions from specific symbol, returned in time ascending order.
-
-``` r
-getHistoricalTrades(symbol = "BITSTAMP_SPOT_BTC_USD", timeStart = "2016-01-01T00:00:00", limit = 25)
-getHistoricalTrades(symbol = "BITSTAMP_SPOT_BTC_USD", timeStart = "2016-01-01T00:00:00", timeEnd = "2016-01-01T00:10:00", limit = 25)
-```
-
-# Quotes
-
-Get current quotes for all symbols or for a specific symbol.
-
-``` r
-getQuotes()
-getQuotes(symbol = "BITSTAMP_SPOT_BTC_USD")
-getQuotes(filterSymbol = "BTC")
-```
-Get latest quote updates up to 1 minute ago or get updates for a specific symbol without time limit.
-Latest data is always returned in time descending order.
-
-``` r
-getLatestQuotes()
-#' getLatestQuotes(symbol = "BITSTAMP_SPOT_BTC_USD")
-#' getLatestQuotes(filterSymbol = "BTC")
-```
-Get historical quote updates within requested time range, returned in time ascending order.
-
-``` r
-getHistoricalQuotes(symbol = "BITSTAMP_SPOT_BTC_USD", timeStart = "2016-01-01T00:00:00", timeEnd = "2016-01-01T00:10:00", limit = 25)
-```
-
-# Orderbook
-
-Get current order book snapshot for all or a specific symbol.
-
-``` r
-getOrderbook(symbol = "BITSTAMP_SPOT_BTC_USD", limitLevels = 1)
-getOrderbook(filterSymbol = "BTC")
-```
-Get latest order book snapshots for a specific symbol, returned in time descending order.
-
-``` r
-getLatestOrderbook(symbol = "BITSTAMP_SPOT_BTC_USD", limitLevels = 1, limit = 25)
-```
-Get historical order book snapshots for a specific symbol within time range, returned in time ascending order.
-
-``` r
-getHistoricalOrderbook(symbol = "BITSTAMP_SPOT_BTC_USD", timeStart = "2016-01-01T00:00:00", timeEnd = "2016-01-01T00:10:00", limitLevels = 1, limit = 25)
-```
-
-# OrderbookL3
-
-Get current order book snapshot for all or a specific symbol.
-
-``` r
-getOrderbookL3(filterSymbol = "BTC", limitLevels = 1)
-getOrderbookL3(symbol = "COINBASE_SPOT_BCH_USD", limitLevels = 1)
-```

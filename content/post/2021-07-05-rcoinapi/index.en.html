@@ -1,5 +1,5 @@
 ---
-title: RCoinAPI
+title: RCoinAPI - Part 1
 author: Ramshreyas Rao
 date: '2021-07-05'
 slug: []
@@ -36,8 +36,21 @@ sequenceDiagrams:
 
 <div id="an-r-package-for-the-coinapi.io-rest-api" class="section level1">
 <h1>An R package for the CoinAPI.io REST API</h1>
-<p>Requires an API key: <a href="https://www.coinapi.io/pricing?apikey" class="uri">https://www.coinapi.io/pricing?apikey</a></p>
-<p>Documentation: <a href="https://docs.coinapi.io/" class="uri">https://docs.coinapi.io/</a></p>
+<p>This is the first in a series of posts detailing my first R package :smile:, providing access to CoinAPI.io’s REST API.</p>
+<p>The goal with this package is to closely match the wonderful <a href="https://cran.r-project.org/web/packages/quantmod/quantmod.pdf">Quantmod</a>, so that you can add Crypto to your Quant workflow using CoinAPI data with as little pain as possible.</p>
+<p>In this series, we’ll use RCoinAPI to get Crypto data, create a trading strategy, and backtest it with <a href="https://github.com/braverock/quantstrat">quantstrat</a>. :sunglasses:</p>
+<div id="before-you-start" class="section level2">
+<h2>Before you start</h2>
+<p>Documentation: <a href="https://github.com/Ramshreyas/rcoinapi" class="uri">https://github.com/Ramshreyas/rcoinapi</a></p>
+</div>
+<div id="requirements" class="section level2">
+<h2>Requirements</h2>
+<p>A working R installation with <a href="https://www.r-project.org/nosvn/pandoc/devtools.html">devtools</a> installed.</p>
+<p>An API key: <a href="https://www.coinapi.io/pricing?apikey" class="uri">https://www.coinapi.io/pricing?apikey</a>. The free one will do for our tutorial.</p>
+<p>A basic understanding of <a href="">Crypto</a></p>
+<p>A basic understanding of <a href="">indicators</a></p>
+<p>Access to :coffee:</p>
+</div>
 <div id="installation" class="section level2">
 <h2>Installation</h2>
 <!-- You can install the released version of rcoinapi from [CRAN](https://CRAN.R-project.org) with: -->
@@ -52,94 +65,33 @@ devtools::install_github(&quot;Ramshreyas/rcoinapi&quot;)</code></pre>
 <h2>Setup</h2>
 <p>Load the library</p>
 <pre class="r"><code>library(rcoinapi)</code></pre>
-<p>Set your API key (Get your API key at <a href="https://www.coinapi.io/pricing?apikey" class="uri">https://www.coinapi.io/pricing?apikey</a>)</p>
+<p>Set your API key (Get your free API key at <a href="https://www.coinapi.io/pricing?apikey" class="uri">https://www.coinapi.io/pricing?apikey</a>)</p>
 <pre class="r"><code>setApiKey(&quot;XXXXXXXXXXXXXXX&quot;)</code></pre>
+<p>Test if it’s working by getting the list of exchanges that CoinAPI gives access to</p>
+<pre class="r"><code>getExchanges()</code></pre>
 </div>
-<div id="usage" class="section level2">
-<h2>Usage</h2>
+<div id="this-is-not-financial-advice" class="section level2">
+<h2>THIS IS NOT FINANCIAL ADVICE</h2>
+<p>'nuff said. :triumph:</p>
+</div>
+<div id="your-first-crypto-trading-strategy" class="section level2">
+<h2>Your first crypto trading strategy</h2>
+<p>Any trading strategy helps you make only two decisions:</p>
+<ul>
+<li>When to buy</li>
+<li>When to sell</li>
+</ul>
+<p>That’s. It. If your strategy enables you to buy lower than you sell more often than not, you are making money (Ignoring some pesky but important funding issues that can bankrupt you before you make money etc… but we’re not going to dwell on it).</p>
+<p>Probably the most commonly (and therefore the least likely to :full_moon:) strategy is the <a href="https://academy.binance.com/en/articles/golden-cross-and-death-cross-explained">Golden/Death cross</a>:</p>
+<ul>
+<li>BUY when the 50-day moving average crosses above the 200-day moving average</li>
+<li>SELL when the 50-day moving average crosses below the 200-day moving average</li>
+</ul>
+<p>Let’s test this against historical data of BTC/USD and see how it works!</p>
+<div id="step-1---get-historical-prices-of-btc." class="section level3">
+<h3>Step 1 - get historical prices of BTC.</h3>
+<p>Let’s get historical prices of BTC/USD from Binance</p>
+<p>``` r</p>
 </div>
 </div>
-<div id="metadata" class="section level1">
-<h1>Metadata</h1>
-<p>List all Exchanges, with details</p>
-<pre class="r"><code>getExchanges()
-getExchanges(&quot;FTX&quot;)</code></pre>
-<p>List all Exchange Icons</p>
-<pre class="r"><code>getExchangeIcons(32)</code></pre>
-<p>List all Assets</p>
-<pre class="r"><code>getAssets()
-getAssets(&quot;BTC&quot;)</code></pre>
-<p>List all Asset Icons</p>
-<pre class="r"><code>getAssetIcons(32)</code></pre>
-<p>List all Symbols</p>
-<pre class="r"><code>getCryptoSymbols()
-getCryptoSymbols(filterSymbolId = &quot;BTC&quot;)
-getCryptoSymbols(filterSymbolId = &quot;BTC&quot;, filterAssetId = &quot;USD&quot;)
-getCryptoSymbols(filterSymbolId = &quot;BTC&quot;, filterAssetId = &quot;USD&quot;, exchangeId = &quot;FTX&quot;)</code></pre>
-</div>
-<div id="exchange-rates" class="section level1">
-<h1>Exchange Rates</h1>
-<p>Get exchange rate between pair of requested assets at specific or current time.</p>
-<pre class="r"><code>getExchangeRate(&quot;BTC&quot;, &quot;USD&quot;)</code></pre>
-<p>Get the current exchange rate between requested asset and all other assets.</p>
-<pre class="r"><code>getAllExchangeRates(&quot;BTC&quot;)</code></pre>
-<p>Get valid periods for historical exchange rates queries</p>
-<pre class="r"><code>getHistoricalExchangeRatePeriods()</code></pre>
-<p>Get the historical exchange rates between two assets as an XTS object for a given time period</p>
-<pre class="r"><code>getHistoricalExchangeRates(&quot;BTC&quot;, &quot;USD&quot;, &quot;1HRS&quot;, &quot;2016-01-01T00:00:00&quot;, &quot;2016-02-01T00:00:00&quot;, limit = 25)</code></pre>
-</div>
-<div id="ohlcv" class="section level1">
-<h1>OHLCV</h1>
-<p>Get valid period ids for OHLCV requests</p>
-<pre class="r"><code>getOHLCVPeriods()</code></pre>
-<p>Get OHLCV latest timeseries data returned in time descending order. Data can be requested by the period and symbol or asset pairs.
-If asset pairs are used then timeseries in the response will contain data consolidated across all most legitimate SPOT markets which
-contain both assets in any order.</p>
-<pre class="r"><code>getLatestOHLCV(&quot;BITSTAMP_SPOT_BTC_USD&quot;, &quot;1MIN&quot;, limit = 25)
-getLatestOHLCV(&quot;BTC&quot;, &quot;USD&quot;, periodId = &quot;1MIN&quot;, limit = 25)</code></pre>
-<p>Get OHLCV timeseries data returned in time ascending order. Data can be requested by the period and symbol or asset pairs.
-If asset pairs are used then timeseries in the response will contain data consolidated across all most legitimate SPOT
-markets which contain both assets in any order..</p>
-<pre class="r"><code>getHistoricalOHLCV(&quot;BTC&quot;, &quot;USD&quot;, periodId = &quot;1MIN&quot;, timeStart = &quot;2016-01-01T00:00:00&quot;, limit = 25)</code></pre>
-</div>
-<div id="trades" class="section level1">
-<h1>Trades</h1>
-<p>Get latest trades from all symbols up to 1 minute ago or get latest trades from a specific symbol without time limitation.
-Latest data is always returned in time descending order.</p>
-<pre class="r"><code>getTrades()
-getTrades(filterSymbol = &quot;BTC&quot;, limit = 25)
-getTrades(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;, limit = 25)</code></pre>
-<p>Get historical transactions from specific symbol, returned in time ascending order.</p>
-<pre class="r"><code>getHistoricalTrades(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;, timeStart = &quot;2016-01-01T00:00:00&quot;, limit = 25)
-getHistoricalTrades(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;, timeStart = &quot;2016-01-01T00:00:00&quot;, timeEnd = &quot;2016-01-01T00:10:00&quot;, limit = 25)</code></pre>
-</div>
-<div id="quotes" class="section level1">
-<h1>Quotes</h1>
-<p>Get current quotes for all symbols or for a specific symbol.</p>
-<pre class="r"><code>getQuotes()
-getQuotes(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;)
-getQuotes(filterSymbol = &quot;BTC&quot;)</code></pre>
-<p>Get latest quote updates up to 1 minute ago or get updates for a specific symbol without time limit.
-Latest data is always returned in time descending order.</p>
-<pre class="r"><code>getLatestQuotes()
-#&#39; getLatestQuotes(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;)
-#&#39; getLatestQuotes(filterSymbol = &quot;BTC&quot;)</code></pre>
-<p>Get historical quote updates within requested time range, returned in time ascending order.</p>
-<pre class="r"><code>getHistoricalQuotes(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;, timeStart = &quot;2016-01-01T00:00:00&quot;, timeEnd = &quot;2016-01-01T00:10:00&quot;, limit = 25)</code></pre>
-</div>
-<div id="orderbook" class="section level1">
-<h1>Orderbook</h1>
-<p>Get current order book snapshot for all or a specific symbol.</p>
-<pre class="r"><code>getOrderbook(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;, limitLevels = 1)
-getOrderbook(filterSymbol = &quot;BTC&quot;)</code></pre>
-<p>Get latest order book snapshots for a specific symbol, returned in time descending order.</p>
-<pre class="r"><code>getLatestOrderbook(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;, limitLevels = 1, limit = 25)</code></pre>
-<p>Get historical order book snapshots for a specific symbol within time range, returned in time ascending order.</p>
-<pre class="r"><code>getHistoricalOrderbook(symbol = &quot;BITSTAMP_SPOT_BTC_USD&quot;, timeStart = &quot;2016-01-01T00:00:00&quot;, timeEnd = &quot;2016-01-01T00:10:00&quot;, limitLevels = 1, limit = 25)</code></pre>
-</div>
-<div id="orderbookl3" class="section level1">
-<h1>OrderbookL3</h1>
-<p>Get current order book snapshot for all or a specific symbol.</p>
-<pre class="r"><code>getOrderbookL3(filterSymbol = &quot;BTC&quot;, limitLevels = 1)
-getOrderbookL3(symbol = &quot;COINBASE_SPOT_BCH_USD&quot;, limitLevels = 1)</code></pre>
 </div>
