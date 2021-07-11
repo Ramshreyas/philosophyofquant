@@ -30,11 +30,9 @@ sequenceDiagrams:
 
 # An R package for the CoinAPI.io REST API
 
-This is the first in a series of posts detailing my first R package :smile:, providing access to CoinAPI.io's REST API. 
+This is the first in a series of posts detailing my first R package :smile:, providing access to CoinAPI.io's REST API. The goal of this package is to closely match the wonderful [Quantmod](https://cran.r-project.org/web/packages/quantmod/quantmod.pdf), so that you can add Crypto to your Quant workflow using CoinAPI data with as little pain as possible.
 
-The goal with this package is to closely match the wonderful [Quantmod](https://cran.r-project.org/web/packages/quantmod/quantmod.pdf), so that you can add Crypto to your Quant workflow using CoinAPI data with as little pain as possible.
-
-In this series, we'll use RCoinAPI to get Crypto data, create a trading strategy, and backtest it with [quantstrat](https://github.com/braverock/quantstrat). :sunglasses:
+In this post, we'll use RCoinAPI to get Crypto data, create a trading strategy, and backtest it with [quantstrat](https://github.com/braverock/quantstrat). :sunglasses:
 
 ## Before you start
 
@@ -42,7 +40,7 @@ Documentation: https://github.com/Ramshreyas/rcoinapi
 
 ## Requirements
 
-A working R installation with [devtools](https://www.r-project.org/nosvn/pandoc/devtools.html) installed.
+A working R ([RStudio, to make life easy](https://www.rstudio.com/products/rstudio/)) installation with [devtools](https://www.r-project.org/nosvn/pandoc/devtools.html) installed.
 
 An API key: https://www.coinapi.io/pricing?apikey. The free one will do for our tutorial.
 
@@ -70,14 +68,14 @@ devtools::install_github("Ramshreyas/rcoinapi")
 
 Load the library
 
-``` r
+``` {r}
 library(rcoinapi)
 ```
 
 Set your API key (Get your free API key at https://www.coinapi.io/pricing?apikey)
 
 ``` r
-setApiKey("XXXXXXXXXXXXXXX")
+setApiKey("Replace with your API key")
 ```
 
 Test if it's working by getting the list of exchanges that CoinAPI gives access to
@@ -99,16 +97,32 @@ Any trading strategy helps you make only two decisions:
 
 That's. It. If your strategy enables you to buy lower than you sell more often than not, you are making money (Ignoring some pesky but important funding issues that can bankrupt you before you make money etc... but we're not going to dwell on it). 
 
-Probably the most commonly (and therefore the least likely to :full_moon:) strategy is the [Golden/Death cross](https://academy.binance.com/en/articles/golden-cross-and-death-cross-explained):
+Probably the most commonly cited (and therefore the least likely to :full_moon:) demo strategy is the [Golden/Death cross](https://academy.binance.com/en/articles/golden-cross-and-death-cross-explained):
 
 - BUY when the 50-day moving average crosses above the 200-day moving average
 - SELL when the 50-day moving average crosses below the 200-day moving average
 
-Let's test this against historical data of BTC/USD and see how it works!
+Of course, you could use weekly/monthly/minutely MAs if you so desire as well.
+
+Let's test this against historical data of BTC/USD using RCoinAPI and see how well it works.
 
 ### Step 1 - get historical prices of BTC. 
 
-Let's get historical prices of BTC/USD from Binance
+Let's get historical prices of BTC/USD, with a 1-Day periodicity, since 2016.
 
-``` r
+``` {r}
+getHistoricalOHLCV("BTC", "USD", periodId = "1DAY", timeStart = "2016-01-01", limit = 1000)
+```
+
+Just like Quantmod, this creates a variable, BTC_USD, which contains the OHLCV data
+
+``` {r}
+head(BTC_USD)
+```
+Now this is not going to be a tutorial on backtesting trading strategies with [quantstrat - click here for the details](https://github.com/braverock/quantstrat).
+
+We're just going to quickly set up a backtest to see how nicely RCoinAPI plays with your existing Quantstrat workflow:
+
+### Step 1: Set up your portfolio, account, trading strategy and dates:
+
 

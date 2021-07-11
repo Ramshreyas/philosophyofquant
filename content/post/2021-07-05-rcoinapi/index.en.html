@@ -36,16 +36,15 @@ sequenceDiagrams:
 
 <div id="an-r-package-for-the-coinapi.io-rest-api" class="section level1">
 <h1>An R package for the CoinAPI.io REST API</h1>
-<p>This is the first in a series of posts detailing my first R package :smile:, providing access to CoinAPI.io’s REST API.</p>
-<p>The goal with this package is to closely match the wonderful <a href="https://cran.r-project.org/web/packages/quantmod/quantmod.pdf">Quantmod</a>, so that you can add Crypto to your Quant workflow using CoinAPI data with as little pain as possible.</p>
-<p>In this series, we’ll use RCoinAPI to get Crypto data, create a trading strategy, and backtest it with <a href="https://github.com/braverock/quantstrat">quantstrat</a>. :sunglasses:</p>
+<p>This is the first in a series of posts detailing my first R package :smile:, providing access to CoinAPI.io’s REST API. The goal of this package is to closely match the wonderful <a href="https://cran.r-project.org/web/packages/quantmod/quantmod.pdf">Quantmod</a>, so that you can add Crypto to your Quant workflow using CoinAPI data with as little pain as possible.</p>
+<p>In this post, we’ll use RCoinAPI to get Crypto data, create a trading strategy, and backtest it with <a href="https://github.com/braverock/quantstrat">quantstrat</a>. :sunglasses:</p>
 <div id="before-you-start" class="section level2">
 <h2>Before you start</h2>
 <p>Documentation: <a href="https://github.com/Ramshreyas/rcoinapi" class="uri">https://github.com/Ramshreyas/rcoinapi</a></p>
 </div>
 <div id="requirements" class="section level2">
 <h2>Requirements</h2>
-<p>A working R installation with <a href="https://www.r-project.org/nosvn/pandoc/devtools.html">devtools</a> installed.</p>
+<p>A working R (<a href="https://www.rstudio.com/products/rstudio/">RStudio, to make life easy</a>) installation with <a href="https://www.r-project.org/nosvn/pandoc/devtools.html">devtools</a> installed.</p>
 <p>An API key: <a href="https://www.coinapi.io/pricing?apikey" class="uri">https://www.coinapi.io/pricing?apikey</a>. The free one will do for our tutorial.</p>
 <p>A basic understanding of <a href="">Crypto</a></p>
 <p>A basic understanding of <a href="">indicators</a></p>
@@ -66,7 +65,7 @@ devtools::install_github(&quot;Ramshreyas/rcoinapi&quot;)</code></pre>
 <p>Load the library</p>
 <pre class="r"><code>library(rcoinapi)</code></pre>
 <p>Set your API key (Get your free API key at <a href="https://www.coinapi.io/pricing?apikey" class="uri">https://www.coinapi.io/pricing?apikey</a>)</p>
-<pre class="r"><code>setApiKey(&quot;XXXXXXXXXXXXXXX&quot;)</code></pre>
+<pre class="r"><code>setApiKey(&quot;Replace with your API key&quot;)</code></pre>
 <p>Test if it’s working by getting the list of exchanges that CoinAPI gives access to</p>
 <pre class="r"><code>getExchanges()</code></pre>
 </div>
@@ -82,16 +81,33 @@ devtools::install_github(&quot;Ramshreyas/rcoinapi&quot;)</code></pre>
 <li>When to sell</li>
 </ul>
 <p>That’s. It. If your strategy enables you to buy lower than you sell more often than not, you are making money (Ignoring some pesky but important funding issues that can bankrupt you before you make money etc… but we’re not going to dwell on it).</p>
-<p>Probably the most commonly (and therefore the least likely to :full_moon:) strategy is the <a href="https://academy.binance.com/en/articles/golden-cross-and-death-cross-explained">Golden/Death cross</a>:</p>
+<p>Probably the most commonly cited (and therefore the least likely to :full_moon:) demo strategy is the <a href="https://academy.binance.com/en/articles/golden-cross-and-death-cross-explained">Golden/Death cross</a>:</p>
 <ul>
 <li>BUY when the 50-day moving average crosses above the 200-day moving average</li>
 <li>SELL when the 50-day moving average crosses below the 200-day moving average</li>
 </ul>
-<p>Let’s test this against historical data of BTC/USD and see how it works!</p>
+<p>Of course, you could use weekly/monthly/minutely MAs if you so desire as well.</p>
+<p>Let’s test this against historical data of BTC/USD using RCoinAPI and see how well it works.</p>
 <div id="step-1---get-historical-prices-of-btc." class="section level3">
 <h3>Step 1 - get historical prices of BTC.</h3>
-<p>Let’s get historical prices of BTC/USD from Binance</p>
-<p>``` r</p>
+<p>Let’s get historical prices of BTC/USD, with a 1-Day periodicity, since 2016.</p>
+<pre class="r"><code>getHistoricalOHLCV(&quot;BTC&quot;, &quot;USD&quot;, periodId = &quot;1DAY&quot;, timeStart = &quot;2016-01-01&quot;, limit = 1000)</code></pre>
+<pre><code>## [1] &quot;BTC_USD&quot;</code></pre>
+<p>Just like Quantmod, this creates a variable, BTC_USD, which contains the OHLCV data</p>
+<pre class="r"><code>head(BTC_USD)</code></pre>
+<pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
+<pre><code>##            BTC_USD.Open BTC_USD.High BTC_USD.Low BTC_USD.Close BTC_USD.Volume
+## 2016-01-01       430.35       437.15    427.2000        433.82       7665.737
+## 2016-01-02       435.67       437.56    430.3248        435.40       6274.265
+## 2016-01-03       433.20       435.75    422.9800        431.91       8499.043
+## 2016-01-04       431.54       435.86    426.5600        434.17      11652.261
+## 2016-01-05       433.31       435.64    429.0000        433.34       9065.912
+## 2016-01-06       433.32       433.46    426.5400        430.87      11004.622</code></pre>
+<p>Now this is not going to be a tutorial on backtesting trading strategies with <a href="https://github.com/braverock/quantstrat">quantstrat - click here for the details</a>.</p>
+<p>We’re just going to quickly set up a backtest to see how nicely RCoinAPI plays with your existing Quantstrat workflow:</p>
+</div>
+<div id="step-1-set-up-your-portfolio-account-trading-strategy-and-dates" class="section level3">
+<h3>Step 1: Set up your portfolio, account, trading strategy and dates:</h3>
 </div>
 </div>
 </div>
