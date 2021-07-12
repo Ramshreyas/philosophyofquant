@@ -86,28 +86,101 @@ devtools::install_github(&quot;Ramshreyas/rcoinapi&quot;)</code></pre>
 <li>BUY when the 50-day moving average crosses above the 200-day moving average</li>
 <li>SELL when the 50-day moving average crosses below the 200-day moving average</li>
 </ul>
-<p>Of course, you could use weekly/monthly/minutely MAs if you so desire as well.</p>
-<p>Let’s test this against historical data of BTC/USD using RCoinAPI and see how well it works.</p>
+<p>Of course, you could use weekly/monthly/minutely/whateverly MAs your little heart desires.</p>
+<p>Let’s backtest this trading strategy against historical data of BTC/USD using RCoinAPI and see how well it works.</p>
 <div id="step-1---get-historical-prices-of-btc." class="section level3">
 <h3>Step 1 - get historical prices of BTC.</h3>
-<p>Let’s get historical prices of BTC/USD, with a 1-Day periodicity, since 2016.</p>
-<pre class="r"><code>getHistoricalOHLCV(&quot;BTC&quot;, &quot;USD&quot;, periodId = &quot;1DAY&quot;, timeStart = &quot;2016-01-01&quot;, limit = 1000)</code></pre>
-<pre><code>## [1] &quot;BTC_USD&quot;</code></pre>
+<p>Let’s get historical prices of ETH/USD, with a 1-Day periodicity, since 2016.</p>
+<pre class="r"><code>getHistoricalOHLCV(&quot;ETH&quot;, &quot;USD&quot;, periodId = &quot;1DAY&quot;, timeStart = &quot;2016-01-01&quot;, limit = 1000)</code></pre>
+<pre><code>## [1] &quot;ETH_USD&quot;</code></pre>
 <p>Just like Quantmod, this creates a variable, BTC_USD, which contains the OHLCV data</p>
-<pre class="r"><code>head(BTC_USD)</code></pre>
+<pre class="r"><code>head(ETH_USD)</code></pre>
 <pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
-<pre><code>##            BTC_USD.Open BTC_USD.High BTC_USD.Low BTC_USD.Close BTC_USD.Volume
-## 2016-01-01       430.35       437.15    427.2000        433.82       7665.737
-## 2016-01-02       435.67       437.56    430.3248        435.40       6274.265
-## 2016-01-03       433.20       435.75    422.9800        431.91       8499.043
-## 2016-01-04       431.54       435.86    426.5600        434.17      11652.261
-## 2016-01-05       433.31       435.64    429.0000        433.34       9065.912
-## 2016-01-06       433.32       433.46    426.5400        430.87      11004.622</code></pre>
+<pre><code>##            ETH_USD.Open ETH_USD.High ETH_USD.Low ETH_USD.Close ETH_USD.Volume
+## 2016-05-09        12.00        12.00        9.36          9.98       1317.903
+## 2016-06-09        14.65        14.70       14.57         14.65       1918.261
+## 2016-06-10        14.19        14.26       13.76         13.91       6847.469
+## 2016-06-11        13.93        14.29       13.86         14.10       7331.346
+## 2016-06-12        14.14        15.91       13.92         15.58      19734.453
+## 2016-06-13        15.91        17.93       15.49         17.89      24139.283</code></pre>
+<p>Let’s compare this with the <a href="https://cran.r-project.org/web/packages/xts/xts.pdf">XTS</a> object returned by Quantmod:</p>
+<pre class="r"><code>quantmod::getSymbols(&quot;AAPL&quot;)</code></pre>
+<pre><code>## [1] &quot;AAPL&quot;</code></pre>
+<pre class="r"><code>head(AAPL)</code></pre>
+<pre><code>##            AAPL.Open AAPL.High AAPL.Low AAPL.Close AAPL.Volume AAPL.Adjusted
+## 2007-01-03  3.081786  3.092143 2.925000   2.992857  1238319600      2.573566
+## 2007-01-04  3.001786  3.069643 2.993571   3.059286   847260400      2.630688
+## 2007-01-05  3.063214  3.078571 3.014286   3.037500   834741600      2.611954
+## 2007-01-08  3.070000  3.090357 3.045714   3.052500   797106800      2.624853
+## 2007-01-09  3.087500  3.320714 3.041071   3.306071  3349298400      2.842900
+## 2007-01-10  3.383929  3.492857 3.337500   3.464286  2952880000      2.978950</code></pre>
+<p>You can see how RCoinAPI mimics the column naming conventions and XTS object structure of your existing <a href="https://cran.r-project.org/web/packages/quantmod/quantmod.pdf">quantmod</a> - <a href="https://github.com/braverock/quantstrat">quantstrat</a> workflow. Obviously, unlike stocks, there is no ‘adjusted’ column in crypto data.</p>
 <p>Now this is not going to be a tutorial on backtesting trading strategies with <a href="https://github.com/braverock/quantstrat">quantstrat - click here for the details</a>.</p>
-<p>We’re just going to quickly set up a backtest to see how nicely RCoinAPI plays with your existing Quantstrat workflow:</p>
+<p>We’re just going to quickly set up a backtest to see how nicely RCoinAPI plays with your existing Quantstrat workflow with a couple of big codeblocks that do all the things referenced in the link above:</p>
 </div>
-<div id="step-1-set-up-your-portfolio-account-trading-strategy-and-dates" class="section level3">
-<h3>Step 1: Set up your portfolio, account, trading strategy and dates:</h3>
+<div id="step-2-setup-portfolio-account-goldendeath-cross-strategy-for-quantstrat" class="section level3">
+<h3>Step 2: Setup portfolio, account, Golden/Death cross strategy for Quantstrat</h3>
+<p>This is taken directly from the <a href="https://github.com/braverock/quantstrat">Quantstrat</a> README, with the stock symbol replaced by our crypto symbol:</p>
+<pre class="r"><code>library(quantstrat)</code></pre>
+<pre class="r"><code># Specify the symbol, currency and stock metadata
+
+stock.str=&#39;ETH_USD&#39; # what are we trying it on
+currency(&#39;USD&#39;)</code></pre>
+<pre><code>## [1] &quot;USD&quot;</code></pre>
+<pre class="r"><code>stock(stock.str,currency=&#39;USD&#39;,multiplier=1)</code></pre>
+<pre><code>## [1] &quot;ETH_USD&quot;</code></pre>
+<pre class="r"><code># Set up the portfolio, account and variables for date, balance, etc
+
+startDate=&quot;2016-01-01&quot;
+initEq=1000000
+portfolio.st=&#39;macross&#39;
+account.st=&#39;macross&#39;
+
+#Intitialize
+
+initPortf(portfolio.st,symbols=stock.str)</code></pre>
+<pre><code>## [1] &quot;macross&quot;</code></pre>
+<pre class="r"><code>initAcct(account.st,portfolios=portfolio.st, initEq=initEq)</code></pre>
+<pre><code>## [1] &quot;macross&quot;</code></pre>
+<pre class="r"><code>initOrders(portfolio=portfolio.st)
+stratMACROSS&lt;- strategy(portfolio.st)</code></pre>
+</div>
+<div id="step-3-create-the-goldendeath-cross-strategy-and-add-it-to-our-portfolio" class="section level3">
+<h3>Step 3: Create the Golden/Death cross strategy and add it to our portfolio</h3>
+<pre class="r"><code>stratMACROSS &lt;- add.indicator(strategy = stratMACROSS, name = &quot;SMA&quot;, arguments = list(x=quote(Cl(mktdata)[,1]), n=50),label= &quot;ma50&quot; )
+stratMACROSS &lt;- add.indicator(strategy = stratMACROSS, name = &quot;SMA&quot;, arguments = list(x=quote(Cl(mktdata)[,1]), n=200),label= &quot;ma200&quot;)
+
+stratMACROSS &lt;- add.signal(strategy = stratMACROSS,name=&quot;sigCrossover&quot;,arguments = list(columns=c(&quot;ma50&quot;,&quot;ma200&quot;), relationship=&quot;gte&quot;),label=&quot;ma50.gt.ma200&quot;)
+stratMACROSS &lt;- add.signal(strategy = stratMACROSS,name=&quot;sigCrossover&quot;,arguments = list(column=c(&quot;ma50&quot;,&quot;ma200&quot;),relationship=&quot;lt&quot;),label=&quot;ma50.lt.ma200&quot;)
+
+stratMACROSS &lt;- add.rule(strategy = stratMACROSS,name=&#39;ruleSignal&#39;, arguments = list(sigcol=&quot;ma50.gt.ma200&quot;,sigval=TRUE, orderqty=100, ordertype=&#39;market&#39;, orderside=&#39;long&#39;),type=&#39;enter&#39;)
+stratMACROSS &lt;- add.rule(strategy = stratMACROSS,name=&#39;ruleSignal&#39;, arguments = list(sigcol=&quot;ma50.lt.ma200&quot;,sigval=TRUE, orderqty=&#39;all&#39;, ordertype=&#39;market&#39;, orderside=&#39;long&#39;),type=&#39;exit&#39;)</code></pre>
+</div>
+<div id="step-4-apply-strategy-update-portfolio-and-view-results" class="section level3">
+<h3>Step 4: Apply strategy, update portfolio and view results!</h3>
+<pre class="r"><code># Apply Strategy
+
+out&lt;-applyStrategy(strategy=stratMACROSS , portfolios=portfolio.st)</code></pre>
+<pre><code>## [1] &quot;2017-02-20 00:00:00 ETH_USD 100 @ 12.47&quot;
+## [1] &quot;2018-04-12 00:00:00 ETH_USD -100 @ 493.41&quot;</code></pre>
+<pre class="r"><code># Update portfolio
+
+updatePortf(Portfolio=&#39;macross&#39;,Dates=paste(&#39;::&#39;,as.Date(Sys.time()),sep=&#39;&#39;))</code></pre>
+<pre><code>## Warning in .updatePosPL(Portfolio = pname, Symbol = as.character(symbol), :
+## Could not parse ::2021-07-12 as ISO8601 string, or one/bothends of the range
+## were outside the available prices: 2016-05-09/2019-03-07. Using all data
+## instead.</code></pre>
+<pre><code>## [1] &quot;macross&quot;</code></pre>
+<pre class="r"><code># Chart portfolio returns
+
+chart.Posn(Portfolio=&#39;macross&#39;,Symbol=stock.str, TA=c(&quot;add_SMA(n=50,col=&#39;red&#39;)&quot;,&quot;add_SMA(n=200,col=&#39;blue&#39;)&quot;))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="conclusion" class="section level3">
+<h3>Conclusion</h3>
+<p>RCoinAPI lets you use the fabulous CoinAPI.io REST API to easily develop and backtest crypto strategies on your existing pipeline with little modification, if any.</p>
+<p>This is of course a new package, so feedback/issues are most welcome!</p>
+<p><a href="https://github.com/Ramshreyas/rcoinapi" class="uri">https://github.com/Ramshreyas/rcoinapi</a></p>
 </div>
 </div>
 </div>

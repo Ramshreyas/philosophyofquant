@@ -102,27 +102,99 @@ Probably the most commonly cited (and therefore the least likely to :full_moon:)
 - BUY when the 50-day moving average crosses above the 200-day moving average
 - SELL when the 50-day moving average crosses below the 200-day moving average
 
-Of course, you could use weekly/monthly/minutely MAs if you so desire as well.
+Of course, you could use weekly/monthly/minutely/whateverly MAs your little heart desires.
 
-Let's test this against historical data of BTC/USD using RCoinAPI and see how well it works.
+Let's backtest this trading strategy against historical data of BTC/USD using RCoinAPI and see how well it works.
 
 ### Step 1 - get historical prices of BTC. 
 
-Let's get historical prices of BTC/USD, with a 1-Day periodicity, since 2016.
+Let's get historical prices of ETH/USD, with a 1-Day periodicity, since 2016.
 
 ``` {r}
-getHistoricalOHLCV("BTC", "USD", periodId = "1DAY", timeStart = "2016-01-01", limit = 1000)
+getHistoricalOHLCV("ETH", "USD", periodId = "1DAY", timeStart = "2016-01-01", limit = 1000)
 ```
 
 Just like Quantmod, this creates a variable, BTC_USD, which contains the OHLCV data
 
 ``` {r}
-head(BTC_USD)
+head(ETH_USD)
 ```
+Let's compare this with the [XTS](https://cran.r-project.org/web/packages/xts/xts.pdf) object returned by Quantmod:
+
+``` {r, warning=FALSE, message=FALSE}
+quantmod::getSymbols("AAPL")
+```
+```{r}
+head(AAPL)
+```
+You can see how RCoinAPI mimics the column naming conventions and XTS object structure of your existing [quantmod](https://cran.r-project.org/web/packages/quantmod/quantmod.pdf) - [quantstrat](https://github.com/braverock/quantstrat) workflow. Obviously, unlike stocks, there is no 'adjusted' column in crypto data.
+
 Now this is not going to be a tutorial on backtesting trading strategies with [quantstrat - click here for the details](https://github.com/braverock/quantstrat).
 
-We're just going to quickly set up a backtest to see how nicely RCoinAPI plays with your existing Quantstrat workflow:
+We're just going to quickly set up a backtest to see how nicely RCoinAPI plays with your existing Quantstrat workflow with a couple of big codeblocks that do all the things referenced in the link above:
 
-### Step 1: Set up your portfolio, account, trading strategy and dates:
+### Step 2: Setup portfolio, account, Golden/Death cross strategy for Quantstrat
 
+This is taken directly from the [Quantstrat](https://github.com/braverock/quantstrat) README, with the stock symbol replaced by our crypto symbol:
 
+```{r, warning=FALSE, message=FALSE}
+library(quantstrat)
+```
+
+```{r}
+# Specify the symbol, currency and stock metadata
+
+stock.str='ETH_USD' # what are we trying it on
+currency('USD')
+stock(stock.str,currency='USD',multiplier=1)
+
+# Set up the portfolio, account and variables for date, balance, etc
+
+startDate="2016-01-01"
+initEq=1000000
+portfolio.st='macross'
+account.st='macross'
+
+#Intitialize
+
+initPortf(portfolio.st,symbols=stock.str)
+initAcct(account.st,portfolios=portfolio.st, initEq=initEq)
+initOrders(portfolio=portfolio.st)
+stratMACROSS<- strategy(portfolio.st)
+```
+### Step 3: Create the Golden/Death cross strategy and add it to our portfolio
+
+```{r}
+stratMACROSS <- add.indicator(strategy = stratMACROSS, name = "SMA", arguments = list(x=quote(Cl(mktdata)[,1]), n=50),label= "ma50" )
+stratMACROSS <- add.indicator(strategy = stratMACROSS, name = "SMA", arguments = list(x=quote(Cl(mktdata)[,1]), n=200),label= "ma200")
+
+stratMACROSS <- add.signal(strategy = stratMACROSS,name="sigCrossover",arguments = list(columns=c("ma50","ma200"), relationship="gte"),label="ma50.gt.ma200")
+stratMACROSS <- add.signal(strategy = stratMACROSS,name="sigCrossover",arguments = list(column=c("ma50","ma200"),relationship="lt"),label="ma50.lt.ma200")
+
+stratMACROSS <- add.rule(strategy = stratMACROSS,name='ruleSignal', arguments = list(sigcol="ma50.gt.ma200",sigval=TRUE, orderqty=100, ordertype='market', orderside='long'),type='enter')
+stratMACROSS <- add.rule(strategy = stratMACROSS,name='ruleSignal', arguments = list(sigcol="ma50.lt.ma200",sigval=TRUE, orderqty='all', ordertype='market', orderside='long'),type='exit')
+```
+
+### Step 4: Apply strategy, update portfolio and view results!
+
+```{r}
+# Apply Strategy
+
+out<-applyStrategy(strategy=stratMACROSS , portfolios=portfolio.st)
+
+# Update portfolio
+
+updatePortf(Portfolio='macross',Dates=paste('::',as.Date(Sys.time()),sep=''))
+
+# Chart portfolio returns
+
+chart.Posn(Portfolio='macross',Symbol=stock.str, TA=c("add_SMA(n=50,col='red')","add_SMA(n=200,col='blue')"))
+```
+
+### Conclusion
+
+RCoinAPI lets you use the fabulous CoinAPI.io REST API to easily develop and backtest crypto strategies on your existing pipeline with little modification, if any.
+
+This is of course a new package, so feedback/issues are most welcome!
+
+https://github.com/Ramshreyas/rcoinapi
