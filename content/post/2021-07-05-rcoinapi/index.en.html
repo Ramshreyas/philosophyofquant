@@ -175,7 +175,7 @@ updatePortf(Portfolio=&#39;macross&#39;,Dates=paste(&#39;::&#39;,as.Date(Sys.tim
 ## were outside the available prices: 2016-05-09/2019-03-07. Using all data
 ## instead.</code></pre>
 <pre><code>## [1] &quot;macross&quot;</code></pre>
-<pre class="r"><code># Chart portfolio returns - the red line is the 50-day MA, and the 200-day MA is green
+<pre class="r"><code># Chart portfolio returns - the red line is the 50-day MA, and the 200-day MA is blue
 
 chart.Posn(Portfolio=&#39;macross&#39;,Symbol=stock.str, TA=c(&quot;add_SMA(n=50,col=&#39;red&#39;)&quot;,&quot;add_SMA(n=200,col=&#39;blue&#39;)&quot;))</code></pre>
 <p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>

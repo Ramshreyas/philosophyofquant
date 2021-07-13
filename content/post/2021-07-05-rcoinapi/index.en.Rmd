@@ -188,7 +188,7 @@ out<-applyStrategy(strategy=stratMACROSS , portfolios=portfolio.st)
 
 updatePortf(Portfolio='macross',Dates=paste('::',as.Date(Sys.time()),sep=''))
 
-# Chart portfolio returns - the red line is the 50-day MA, and the 200-day MA is green
+# Chart portfolio returns - the red line is the 50-day MA, and the 200-day MA is blue
 
 chart.Posn(Portfolio='macross',Symbol=stock.str, TA=c("add_SMA(n=50,col='red')","add_SMA(n=200,col='blue')"))
 ```
