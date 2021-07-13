@@ -30,6 +30,8 @@ sequenceDiagrams:
 
 # An R package for the CoinAPI.io REST API
 
+![Golden/Death Cross Trade on ETH](images/unnamed-chunk-9-1.png)
+
 This is the first in a series of posts detailing my first R package :smile:, providing access to CoinAPI.io's REST API. The goal of this package is to closely match the wonderful [Quantmod](https://cran.r-project.org/web/packages/quantmod/quantmod.pdf), so that you can add Crypto to your Quant workflow using CoinAPI data with as little pain as possible.
 
 In this post, we'll use RCoinAPI to get Crypto data, create a trading strategy, and backtest it with [quantstrat](https://github.com/braverock/quantstrat). :sunglasses:
@@ -104,9 +106,9 @@ Probably the most commonly cited (and therefore the least likely to :full_moon:)
 
 Of course, you could use weekly/monthly/minutely/whateverly MAs your little heart desires.
 
-Let's backtest this trading strategy against historical data of BTC/USD using RCoinAPI and see how well it works.
+Let's backtest this trading strategy against historical data of ETH/USD using RCoinAPI and see how well it works.
 
-### Step 1 - get historical prices of BTC. 
+### Step 1 - get historical prices of ETH. 
 
 Let's get historical prices of ETH/USD, with a 1-Day periodicity, since 2016.
 
@@ -114,7 +116,7 @@ Let's get historical prices of ETH/USD, with a 1-Day periodicity, since 2016.
 getHistoricalOHLCV("ETH", "USD", periodId = "1DAY", timeStart = "2016-01-01", limit = 1000)
 ```
 
-Just like Quantmod, this creates a variable, BTC_USD, which contains the OHLCV data
+Just like Quantmod, this creates a variable, ETH_USD, which contains the OHLCV data
 
 ``` {r}
 head(ETH_USD)
@@ -186,14 +188,16 @@ out<-applyStrategy(strategy=stratMACROSS , portfolios=portfolio.st)
 
 updatePortf(Portfolio='macross',Dates=paste('::',as.Date(Sys.time()),sep=''))
 
-# Chart portfolio returns
+# Chart portfolio returns - the red line is the 50-day MA, and the 200-day MA is green
 
 chart.Posn(Portfolio='macross',Symbol=stock.str, TA=c("add_SMA(n=50,col='red')","add_SMA(n=200,col='blue')"))
 ```
 
+As you can see, this strategy produces just one trade, where the 50-day MA (in red) crosses the 200-day MA (blue) and back again.
+
 ### Conclusion
 
-RCoinAPI lets you use the fabulous CoinAPI.io REST API to easily develop and backtest crypto strategies on your existing pipeline with little modification, if any.
+RCoinAPI lets you use the fabulous CoinAPI.io REST API to easily develop and backtest crypto strategies on your existing quantmod - quantstrat pipeline with little modification, if any.
 
 This is of course a new package, so feedback/issues are most welcome!
 

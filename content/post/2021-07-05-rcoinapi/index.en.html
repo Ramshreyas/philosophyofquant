@@ -36,6 +36,10 @@ sequenceDiagrams:
 
 <div id="an-r-package-for-the-coinapi.io-rest-api" class="section level1">
 <h1>An R package for the CoinAPI.io REST API</h1>
+<div class="figure">
+<img src="images/unnamed-chunk-9-1.png" alt="" />
+<p class="caption">Golden/Death Cross Trade on ETH</p>
+</div>
 <p>This is the first in a series of posts detailing my first R package :smile:, providing access to CoinAPI.io’s REST API. The goal of this package is to closely match the wonderful <a href="https://cran.r-project.org/web/packages/quantmod/quantmod.pdf">Quantmod</a>, so that you can add Crypto to your Quant workflow using CoinAPI data with as little pain as possible.</p>
 <p>In this post, we’ll use RCoinAPI to get Crypto data, create a trading strategy, and backtest it with <a href="https://github.com/braverock/quantstrat">quantstrat</a>. :sunglasses:</p>
 <div id="before-you-start" class="section level2">
@@ -87,13 +91,13 @@ devtools::install_github(&quot;Ramshreyas/rcoinapi&quot;)</code></pre>
 <li>SELL when the 50-day moving average crosses below the 200-day moving average</li>
 </ul>
 <p>Of course, you could use weekly/monthly/minutely/whateverly MAs your little heart desires.</p>
-<p>Let’s backtest this trading strategy against historical data of BTC/USD using RCoinAPI and see how well it works.</p>
-<div id="step-1---get-historical-prices-of-btc." class="section level3">
-<h3>Step 1 - get historical prices of BTC.</h3>
+<p>Let’s backtest this trading strategy against historical data of ETH/USD using RCoinAPI and see how well it works.</p>
+<div id="step-1---get-historical-prices-of-eth." class="section level3">
+<h3>Step 1 - get historical prices of ETH.</h3>
 <p>Let’s get historical prices of ETH/USD, with a 1-Day periodicity, since 2016.</p>
 <pre class="r"><code>getHistoricalOHLCV(&quot;ETH&quot;, &quot;USD&quot;, periodId = &quot;1DAY&quot;, timeStart = &quot;2016-01-01&quot;, limit = 1000)</code></pre>
 <pre><code>## [1] &quot;ETH_USD&quot;</code></pre>
-<p>Just like Quantmod, this creates a variable, BTC_USD, which contains the OHLCV data</p>
+<p>Just like Quantmod, this creates a variable, ETH_USD, which contains the OHLCV data</p>
 <pre class="r"><code>head(ETH_USD)</code></pre>
 <pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
 <pre><code>##            ETH_USD.Open ETH_USD.High ETH_USD.Low ETH_USD.Close ETH_USD.Volume
@@ -167,18 +171,19 @@ out&lt;-applyStrategy(strategy=stratMACROSS , portfolios=portfolio.st)</code></p
 
 updatePortf(Portfolio=&#39;macross&#39;,Dates=paste(&#39;::&#39;,as.Date(Sys.time()),sep=&#39;&#39;))</code></pre>
 <pre><code>## Warning in .updatePosPL(Portfolio = pname, Symbol = as.character(symbol), :
-## Could not parse ::2021-07-12 as ISO8601 string, or one/bothends of the range
+## Could not parse ::2021-07-13 as ISO8601 string, or one/bothends of the range
 ## were outside the available prices: 2016-05-09/2019-03-07. Using all data
 ## instead.</code></pre>
 <pre><code>## [1] &quot;macross&quot;</code></pre>
-<pre class="r"><code># Chart portfolio returns
+<pre class="r"><code># Chart portfolio returns - the red line is the 50-day MA, and the 200-day MA is green
 
 chart.Posn(Portfolio=&#39;macross&#39;,Symbol=stock.str, TA=c(&quot;add_SMA(n=50,col=&#39;red&#39;)&quot;,&quot;add_SMA(n=200,col=&#39;blue&#39;)&quot;))</code></pre>
 <p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>As you can see, this strategy produces just one trade, where the 50-day MA (in red) crosses the 200-day MA (blue) and back again.</p>
 </div>
 <div id="conclusion" class="section level3">
 <h3>Conclusion</h3>
-<p>RCoinAPI lets you use the fabulous CoinAPI.io REST API to easily develop and backtest crypto strategies on your existing pipeline with little modification, if any.</p>
+<p>RCoinAPI lets you use the fabulous CoinAPI.io REST API to easily develop and backtest crypto strategies on your existing quantmod - quantstrat pipeline with little modification, if any.</p>
 <p>This is of course a new package, so feedback/issues are most welcome!</p>
 <p><a href="https://github.com/Ramshreyas/rcoinapi" class="uri">https://github.com/Ramshreyas/rcoinapi</a></p>
 </div>
