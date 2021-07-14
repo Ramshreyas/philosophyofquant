@@ -1,0 +1,157 @@
+---
+title: RCoinAPI - Part 2
+author: Ramshreyas Rao
+date: '2021-07-14'
+slug: []
+categories:
+  - Crypto
+tags: []
+lastmod: '2021-07-14T16:38:41+05:30'
+keywords: []
+description: ''
+comment: no
+toc: no
+autoCollapseToc: no
+postMetaInFooter: no
+hiddenFromHomePage: no
+contentCopyright: no
+reward: no
+mathjax: no
+mathjaxEnableSingleDollar: no
+mathjaxEnableAutoNumber: no
+hideHeaderAndFooter: no
+flowchartDiagrams:
+  enable: no
+  options: ''
+sequenceDiagrams:
+  enable: no
+  options: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+
+</div>
+
+<div id="a-closer-look" class="section level1">
+<h1>A closer look</h1>
+<p><img src="images/Closer_Look_(5711020957).jpg" /></p>
+<div id="in-part-1" class="section level3">
+<h3>In <a href="http://localhost:4321/post/2021-07-05-rcoinapi/">Part 1</a>,</h3>
+<p>we used RCoinAPI to get ETH/USD data to create and backtest a very simple Golden/Death-cross strategy.</p>
+<p>In part deux, let’s take a closer look at the OHLCV methods exposed by RCoinAPI.</p>
+</div>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<p>Load the library</p>
+<pre class="r"><code>library(rcoinapi)</code></pre>
+<p>Set your API key (Get your API key at
+<a href="https://www.coinapi.io/pricing?apikey" class="uri">https://www.coinapi.io/pricing?apikey</a>)</p>
+<pre class="r"><code>setApiKey(&quot;XXXXXXXXXXXXXXX&quot;)</code></pre>
+</div>
+<div id="ohlcv" class="section level2">
+<h2>OHLCV</h2>
+<p>Get valid periodIds for OHLCV requests:</p>
+<pre class="r"><code>getOHLCVPeriods()</code></pre>
+<pre><code>##    period_id length_seconds length_months unit_count unit_name display_name
+## 1       1SEC              1             0          1    second     1 Second
+## 2       2SEC              2             0          2    second    2 Seconds
+## 3       3SEC              3             0          3    second    3 Seconds
+## 4       4SEC              4             0          4    second    4 Seconds
+## 5       5SEC              5             0          5    second    5 Seconds
+## 6       6SEC              6             0          6    second    6 Seconds
+## 7      10SEC             10             0         10    second   10 Seconds
+## 8      15SEC             15             0         15    second   15 Seconds
+## 9      20SEC             20             0         20    second   20 Seconds
+## 10     30SEC             30             0         30    second   30 Seconds
+## 11      1MIN             60             0          1    minute     1 Minute
+## 12      2MIN            120             0          2    minute    2 Minutes
+## 13      3MIN            180             0          3    minute    3 Minutes
+## 14      4MIN            240             0          4    minute    4 Minutes
+## 15      5MIN            300             0          5    minute    5 Minutes
+## 16      6MIN            360             0          6    minute    6 Minutes
+## 17     10MIN            600             0         10    minute   10 Minutes
+## 18     15MIN            900             0         15    minute   15 Minutes
+## 19     20MIN           1200             0         20    minute   20 Minutes
+## 20     30MIN           1800             0         30    minute   30 Minutes
+## 21      1HRS           3600             0          1      hour       1 Hour
+## 22      2HRS           7200             0          2      hour      2 Hours
+## 23      3HRS          10800             0          3      hour      3 Hours
+## 24      4HRS          14400             0          4      hour      4 Hours
+## 25      6HRS          21600             0          6      hour      6 Hours
+## 26      8HRS          28800             0          8      hour      8 Hours
+## 27     12HRS          43200             0         12      hour     12 Hours
+## 28      1DAY          86400             0          1       day        1 Day
+## 29      2DAY         172800             0          2       day       2 Days
+## 30      3DAY         259200             0          3       day       3 Days
+## 31      5DAY         432000             0          5       day       5 Days
+## 32      7DAY         604800             0          7       day       7 Days
+## 33     10DAY         864000             0         10       day      10 Days
+## 34      1MTH              0             1          1     month      1 Month
+## 35      2MTH              0             2          2     month     2 Months
+## 36      3MTH              0             3          3     month     3 Months
+## 37      4MTH              0             4          4     month     4 Months
+## 38      6MTH              0             6          6     month     6 Months
+## 39      1YRS              0            12          1      year       1 Year
+## 40      2YRS              0            24          2      year      2 Years
+## 41      3YRS              0            36          3      year      3 Years
+## 42      4YRS              0            48          4      year      4 Years
+## 43      5YRS              0            60          5      year      5 Years</code></pre>
+<p>Get OHLCV latest timeseries data returned in time descending order. Data
+can be requested by the period and symbol or asset pairs. If asset pairs
+are used then timeseries in the response will contain data consolidated
+across all most legitimate SPOT markets which contain both assets in any
+order:</p>
+<pre class="r"><code>getLatestOHLCV(&quot;BITSTAMP_SPOT_BTC_USD&quot;, periodId = &quot;1MIN&quot;, limit = 25)</code></pre>
+<pre><code>## [1] &quot;BITSTAMP_SPOT_BTC_USD&quot;</code></pre>
+<pre class="r"><code>head(BITSTAMP_SPOT_BTC_USD)</code></pre>
+<pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
+<pre><code>##                     BITSTAMP_SPOT_BTC_USD.Open BITSTAMP_SPOT_BTC_USD.High
+## 2021-07-14 10:54:00                   32478.01                   32493.06
+## 2021-07-14 10:55:00                   32496.53                   32496.53
+## 2021-07-14 10:56:00                   32473.66                   32473.66
+## 2021-07-14 10:57:00                   32447.28                   32448.09
+## 2021-07-14 10:58:00                   32421.41                   32451.51
+## 2021-07-14 10:59:00                   32450.00                   32450.00
+##                     BITSTAMP_SPOT_BTC_USD.Low BITSTAMP_SPOT_BTC_USD.Close
+## 2021-07-14 10:54:00                  32478.01                    32493.06
+## 2021-07-14 10:55:00                  32445.20                    32474.35
+## 2021-07-14 10:56:00                  32456.19                    32456.19
+## 2021-07-14 10:57:00                  32418.81                    32440.61
+## 2021-07-14 10:58:00                  32421.41                    32431.19
+## 2021-07-14 10:59:00                  32436.99                    32436.99
+##                     BITSTAMP_SPOT_BTC_USD.Volume
+## 2021-07-14 10:54:00                   0.02689948
+## 2021-07-14 10:55:00                   0.05677452
+## 2021-07-14 10:56:00                   0.41562936
+## 2021-07-14 10:57:00                   4.36679985
+## 2021-07-14 10:58:00                   1.76074000
+## 2021-07-14 10:59:00                   0.04064274</code></pre>
+<p>As you can see, this returns an xts object much like that returned by quantmod’s <a href="https://www.rdocumentation.org/packages/quantmod/versions/0.4.18/topics/getSymbols">getSymbols</a>.</p>
+<pre class="r"><code>getLatestOHLCV(&quot;BTC&quot;, &quot;USD&quot;, periodId = &quot;1HRS&quot;, limit = 25)</code></pre>
+<pre><code>## [1] &quot;BTC_USD&quot;</code></pre>
+<pre class="r"><code>head(BTC_USD)</code></pre>
+<pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
+<pre><code>##                     BTC_USD.Open BTC_USD.High BTC_USD.Low BTC_USD.Close
+## 2021-07-13 11:00:00     33104.66     33199.62    32926.00      33044.35
+## 2021-07-13 12:00:00     33046.91     33056.91    32248.88      32353.35
+## 2021-07-13 13:00:00     32354.22     32666.51    32270.09      32574.07
+## 2021-07-13 14:00:00     32575.60     32629.35    32449.21      32564.12
+## 2021-07-13 15:00:00     32564.13     32876.59    32526.00      32797.91
+## 2021-07-13 16:00:00     32788.50     32921.87    32630.50      32809.56
+##                     BTC_USD.Volume
+## 2021-07-13 11:00:00       667.4150
+## 2021-07-13 12:00:00      2785.5869
+## 2021-07-13 13:00:00      1767.7181
+## 2021-07-13 14:00:00       958.8574
+## 2021-07-13 15:00:00      1012.7467
+## 2021-07-13 16:00:00       760.1624</code></pre>
+<p>Get OHLCV timeseries data returned in time ascending order. Data can be
+requested by the period and symbol or asset pairs. If asset pairs are
+used then timeseries in the response will contain data consolidated
+across all most legitimate SPOT markets which contain both assets in any
+order..</p>
+<pre class="r"><code>getHistoricalOHLCV(&quot;BTC&quot;, &quot;USD&quot;, periodId = &quot;1MIN&quot;, timeStart = &quot;2016-01-01T00:00:00&quot;, limit = 25)</code></pre>
+</div>
+</div>
