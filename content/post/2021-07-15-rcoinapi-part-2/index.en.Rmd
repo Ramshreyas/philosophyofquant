@@ -1,0 +1,120 @@
+---
+title: RCoinAPI - Part 2
+author: Ramshreyas Rao
+date: '2021-07-15'
+slug: []
+categories:
+  - Crypto
+tags: []
+lastmod: '2021-07-15T12:18:15+05:30'
+keywords: []
+description: ''
+comment: no
+toc: no
+autoCollapseToc: no
+postMetaInFooter: no
+hiddenFromHomePage: no
+contentCopyright: no
+reward: no
+mathjax: no
+mathjaxEnableSingleDollar: no
+mathjaxEnableAutoNumber: no
+hideHeaderAndFooter: no
+flowchartDiagrams:
+  enable: no
+  options: ''
+sequenceDiagrams:
+  enable: no
+  options: ''
+---
+
+# A closer look
+
+![](images/Closer_Look_(5711020957).jpg)
+
+In [Part 1](http://localhost:4321/post/2021-07-05-rcoinapi/), we used RCoinAPI to get ETH/USD data to create and backtest a very simple Golden/Death-cross strategy. In part deux, let's take a closer look at the OHLCV methods exposed by RCoinAPI. We will quickly get a sense of what is on offer, and how well it plays with familiar [quantmod](https://cran.r-project.org/web/packages/quantmod/quantmod.pdf) commands.
+
+## Setup
+
+Load the library
+
+``` {r, warning=FALSE, message=FALSE}
+library(rcoinapi)
+library(quantmod)
+```
+
+Set your API key (Get your API key at
+<https://www.coinapi.io/pricing?apikey>)
+
+``` r
+setApiKey("XXXXXXXXXXXXXXX")
+```
+
+## OHLCV
+
+To make OHLCV requests, we first need to set the periodicity of the returned xts object. Unlike [quantmod](https://cran.r-project.org/web/packages/quantmod/quantmod.pdf), where the [getSymbols](https://www.rdocumentation.org/packages/quantmod/versions/0.4.18/topics/getSymbols) function always returns data with a 1-day perdiodicity, we need to specify the candle duration. 
+
+So to get valid periodIds for OHLCV requests:
+
+``` {r}
+getOHLCVPeriods()
+```
+
+Self-explanatory, I trust.
+
+We will now use one of these periodIds to request data for a given 'symbol'. In CoinAPI nomenclature, symbols refer to specific instruments on exchanges, like the BTC/USD spot market pair on Bitstamp,  BITSTAMP_SPOT_BTC_USD. 'Assets' refer to the underlying asset, like BTC, or USD.
+
+To list all symbols available in CoinAPI, just run one of:
+
+```r
+getCryptoSymbols()
+getCryptoSymbols(filterSymbolId = "BTC")
+getCryptoSymbols(filterSymbolId = "BTC", filterAssetId = "USD")
+getCryptoSymbols(filterSymbolId = "BTC", filterAssetId = "USD", exchangeId = "FTX")
+```
+
+To get the 25 latest data for BITSTAMP_SPOT_BTC_USD:
+
+``` {r}
+getLatestOHLCV("BITSTAMP_SPOT_BTC_USD", periodId = "1MIN", limit = 25)
+head(BITSTAMP_SPOT_BTC_USD)
+```
+As you can see, this returns an xts object much like that returned by quantmod's [getSymbols](https://www.rdocumentation.org/packages/quantmod/versions/0.4.18/topics/getSymbols). So we can:
+
+```{r}
+head(Hi(BITSTAMP_SPOT_BTC_USD))
+```
+
+Confirm the periodicity:
+```{r}
+periodicity(BITSTAMP_SPOT_BTC_USD)
+```
+
+and [chartSeries](https://www.rdocumentation.org/packages/quantmod/versions/0.4.18/topics/chartSeries) quite handily:
+```{r}
+chartSeries(BITSTAMP_SPOT_BTC_USD)
+```
+
+We can also do this with assets (base and quote) to get aggregated results across multiple exchanges - ["If asset pairs are used then timeseries in the response will contain data consolidated across all most legitimate SPOT markets which contain both assets in any order."](https://docs.coinapi.io/#latest-data-get)
+```{r}
+getLatestOHLCV("BTC", "USD", periodId = "1HRS", limit = 25)
+head(BTC_USD)
+```
+All of this data is 'latest' as defined by CoinAPI - for historical data of symbols:
+
+``` {r}
+getHistoricalOHLCV("BITSTAMP_SPOT_BTC_USD", periodId = "1MIN", timeStart = "2016-01-01T00:00:00", limit = 25)
+head(BITSTAMP_SPOT_BTC_USD)
+```
+As you can see, this is now showing 2016 data for BITSTAMP_SPOT_BTC_USD.
+
+For historical data of asset/base pairs aggregated across exchanges:
+```{r}
+getHistoricalOHLCV("BTC", "USD", periodId = "1MIN", timeStart = "2016-01-01T00:00:00", limit = 25)
+head(BTC_USD)
+```
+
+And that's about it!
+
+This winds up a quick whirlwind tour of how to get clean, OHLCV data in xts format using RCoinAPI, either from specific exchanges, or aggregated across exchanges. There is a lot more functionality, and full coverage of the CoinAPI functionality including Trades, Orderbooks, L3 and Quote data which the library covers - please see [https://github.com/Ramshreyas/rcoinapi](https://github.com/Ramshreyas/rcoinapi) for the full documentation.
+

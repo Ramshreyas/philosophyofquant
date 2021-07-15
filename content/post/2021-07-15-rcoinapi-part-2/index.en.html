@@ -1,0 +1,216 @@
+---
+title: RCoinAPI - Part 2
+author: Ramshreyas Rao
+date: '2021-07-15'
+slug: []
+categories:
+  - Crypto
+tags: []
+lastmod: '2021-07-15T12:18:15+05:30'
+keywords: []
+description: ''
+comment: no
+toc: no
+autoCollapseToc: no
+postMetaInFooter: no
+hiddenFromHomePage: no
+contentCopyright: no
+reward: no
+mathjax: no
+mathjaxEnableSingleDollar: no
+mathjaxEnableAutoNumber: no
+hideHeaderAndFooter: no
+flowchartDiagrams:
+  enable: no
+  options: ''
+sequenceDiagrams:
+  enable: no
+  options: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+
+</div>
+
+<div id="a-closer-look" class="section level1">
+<h1>A closer look</h1>
+<p><img src="images/Closer_Look_(5711020957).jpg" /></p>
+<p>In <a href="http://localhost:4321/post/2021-07-05-rcoinapi/">Part 1</a>, we used RCoinAPI to get ETH/USD data to create and backtest a very simple Golden/Death-cross strategy. In part deux, let’s take a closer look at the OHLCV methods exposed by RCoinAPI. We will quickly get a sense of what is on offer, and how well it plays with familiar <a href="https://cran.r-project.org/web/packages/quantmod/quantmod.pdf">quantmod</a> commands.</p>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<p>Load the library</p>
+<pre class="r"><code>library(rcoinapi)
+library(quantmod)</code></pre>
+<p>Set your API key (Get your API key at
+<a href="https://www.coinapi.io/pricing?apikey" class="uri">https://www.coinapi.io/pricing?apikey</a>)</p>
+<pre class="r"><code>setApiKey(&quot;XXXXXXXXXXXXXXX&quot;)</code></pre>
+</div>
+<div id="ohlcv" class="section level2">
+<h2>OHLCV</h2>
+<p>To make OHLCV requests, we first need to set the periodicity of the returned xts object. Unlike <a href="https://cran.r-project.org/web/packages/quantmod/quantmod.pdf">quantmod</a>, where the <a href="https://www.rdocumentation.org/packages/quantmod/versions/0.4.18/topics/getSymbols">getSymbols</a> function always returns data with a 1-day perdiodicity, we need to specify the candle duration.</p>
+<p>So to get valid periodIds for OHLCV requests:</p>
+<pre class="r"><code>getOHLCVPeriods()</code></pre>
+<pre><code>##    period_id length_seconds length_months unit_count unit_name display_name
+## 1       1SEC              1             0          1    second     1 Second
+## 2       2SEC              2             0          2    second    2 Seconds
+## 3       3SEC              3             0          3    second    3 Seconds
+## 4       4SEC              4             0          4    second    4 Seconds
+## 5       5SEC              5             0          5    second    5 Seconds
+## 6       6SEC              6             0          6    second    6 Seconds
+## 7      10SEC             10             0         10    second   10 Seconds
+## 8      15SEC             15             0         15    second   15 Seconds
+## 9      20SEC             20             0         20    second   20 Seconds
+## 10     30SEC             30             0         30    second   30 Seconds
+## 11      1MIN             60             0          1    minute     1 Minute
+## 12      2MIN            120             0          2    minute    2 Minutes
+## 13      3MIN            180             0          3    minute    3 Minutes
+## 14      4MIN            240             0          4    minute    4 Minutes
+## 15      5MIN            300             0          5    minute    5 Minutes
+## 16      6MIN            360             0          6    minute    6 Minutes
+## 17     10MIN            600             0         10    minute   10 Minutes
+## 18     15MIN            900             0         15    minute   15 Minutes
+## 19     20MIN           1200             0         20    minute   20 Minutes
+## 20     30MIN           1800             0         30    minute   30 Minutes
+## 21      1HRS           3600             0          1      hour       1 Hour
+## 22      2HRS           7200             0          2      hour      2 Hours
+## 23      3HRS          10800             0          3      hour      3 Hours
+## 24      4HRS          14400             0          4      hour      4 Hours
+## 25      6HRS          21600             0          6      hour      6 Hours
+## 26      8HRS          28800             0          8      hour      8 Hours
+## 27     12HRS          43200             0         12      hour     12 Hours
+## 28      1DAY          86400             0          1       day        1 Day
+## 29      2DAY         172800             0          2       day       2 Days
+## 30      3DAY         259200             0          3       day       3 Days
+## 31      5DAY         432000             0          5       day       5 Days
+## 32      7DAY         604800             0          7       day       7 Days
+## 33     10DAY         864000             0         10       day      10 Days
+## 34      1MTH              0             1          1     month      1 Month
+## 35      2MTH              0             2          2     month     2 Months
+## 36      3MTH              0             3          3     month     3 Months
+## 37      4MTH              0             4          4     month     4 Months
+## 38      6MTH              0             6          6     month     6 Months
+## 39      1YRS              0            12          1      year       1 Year
+## 40      2YRS              0            24          2      year      2 Years
+## 41      3YRS              0            36          3      year      3 Years
+## 42      4YRS              0            48          4      year      4 Years
+## 43      5YRS              0            60          5      year      5 Years</code></pre>
+<p>Self-explanatory, I trust.</p>
+<p>We will now use one of these periodIds to request data for a given ‘symbol’. In CoinAPI nomenclature, symbols refer to specific instruments on exchanges, like the BTC/USD spot market pair on Bitstamp, BITSTAMP_SPOT_BTC_USD. ‘Assets’ refer to the underlying asset, like BTC, or USD.</p>
+<p>To list all symbols available in CoinAPI, just run one of:</p>
+<pre class="r"><code>getCryptoSymbols()
+getCryptoSymbols(filterSymbolId = &quot;BTC&quot;)
+getCryptoSymbols(filterSymbolId = &quot;BTC&quot;, filterAssetId = &quot;USD&quot;)
+getCryptoSymbols(filterSymbolId = &quot;BTC&quot;, filterAssetId = &quot;USD&quot;, exchangeId = &quot;FTX&quot;)</code></pre>
+<p>To get the 25 latest data for BITSTAMP_SPOT_BTC_USD:</p>
+<pre class="r"><code>getLatestOHLCV(&quot;BITSTAMP_SPOT_BTC_USD&quot;, periodId = &quot;1MIN&quot;, limit = 25)</code></pre>
+<pre><code>## [1] &quot;BITSTAMP_SPOT_BTC_USD&quot;</code></pre>
+<pre class="r"><code>head(BITSTAMP_SPOT_BTC_USD)</code></pre>
+<pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
+<pre><code>##                     BITSTAMP_SPOT_BTC_USD.Open BITSTAMP_SPOT_BTC_USD.High
+## 2021-07-15 07:25:00                   32474.28                   32474.28
+## 2021-07-15 07:26:00                   32468.01                   32471.78
+## 2021-07-15 07:27:00                   32466.40                   32483.90
+## 2021-07-15 07:28:00                   32480.21                   32551.47
+## 2021-07-15 07:29:00                   32540.56                   32540.56
+## 2021-07-15 07:30:00                   32514.66                   32520.50
+##                     BITSTAMP_SPOT_BTC_USD.Low BITSTAMP_SPOT_BTC_USD.Close
+## 2021-07-15 07:25:00                  32450.57                    32464.71
+## 2021-07-15 07:26:00                  32459.54                    32459.54
+## 2021-07-15 07:27:00                  32457.51                    32483.90
+## 2021-07-15 07:28:00                  32480.21                    32551.47
+## 2021-07-15 07:29:00                  32536.06                    32536.06
+## 2021-07-15 07:30:00                  32471.98                    32471.98
+##                     BITSTAMP_SPOT_BTC_USD.Volume
+## 2021-07-15 07:25:00                    1.0820104
+## 2021-07-15 07:26:00                    1.9025550
+## 2021-07-15 07:27:00                    0.4434503
+## 2021-07-15 07:28:00                    0.3673941
+## 2021-07-15 07:29:00                    0.0125800
+## 2021-07-15 07:30:00                    4.7659686</code></pre>
+<p>As you can see, this returns an xts object much like that returned by quantmod’s <a href="https://www.rdocumentation.org/packages/quantmod/versions/0.4.18/topics/getSymbols">getSymbols</a>. So we can:</p>
+<pre class="r"><code>head(Hi(BITSTAMP_SPOT_BTC_USD))</code></pre>
+<pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
+<pre><code>##                     BITSTAMP_SPOT_BTC_USD.High
+## 2021-07-15 07:25:00                   32474.28
+## 2021-07-15 07:26:00                   32471.78
+## 2021-07-15 07:27:00                   32483.90
+## 2021-07-15 07:28:00                   32551.47
+## 2021-07-15 07:29:00                   32540.56
+## 2021-07-15 07:30:00                   32520.50</code></pre>
+<p>Confirm the periodicity:</p>
+<pre class="r"><code>periodicity(BITSTAMP_SPOT_BTC_USD)</code></pre>
+<pre><code>## 1 minute periodicity from 2021-07-15 07:25:00 to 2021-07-15 07:49:00</code></pre>
+<p>and <a href="https://www.rdocumentation.org/packages/quantmod/versions/0.4.18/topics/chartSeries">chartSeries</a> quite handily:</p>
+<pre class="r"><code>chartSeries(BITSTAMP_SPOT_BTC_USD)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>We can also do this with assets (base and quote) to get aggregated results across multiple exchanges - <a href="https://docs.coinapi.io/#latest-data-get">“If asset pairs are used then timeseries in the response will contain data consolidated across all most legitimate SPOT markets which contain both assets in any order.”</a></p>
+<pre class="r"><code>getLatestOHLCV(&quot;BTC&quot;, &quot;USD&quot;, periodId = &quot;1HRS&quot;, limit = 25)</code></pre>
+<pre><code>## [1] &quot;BTC_USD&quot;</code></pre>
+<pre class="r"><code>head(BTC_USD)</code></pre>
+<pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
+<pre><code>##                     BTC_USD.Open BTC_USD.High BTC_USD.Low BTC_USD.Close
+## 2021-07-14 07:00:00     31844.71     32020.50    31819.46      31926.30
+## 2021-07-14 08:00:00     31926.29     32006.36    31705.80      31742.52
+## 2021-07-14 09:00:00     31749.80     32523.00    31555.60      32347.03
+## 2021-07-14 10:00:00     32348.65     32710.50    32285.27      32443.45
+## 2021-07-14 11:00:00     32438.11     32583.57    32382.50      32464.46
+## 2021-07-14 12:00:00     32459.92     32544.13    32286.30      32317.98
+##                     BTC_USD.Volume
+## 2021-07-14 07:00:00       419.1704
+## 2021-07-14 08:00:00      1076.9371
+## 2021-07-14 09:00:00      1970.9758
+## 2021-07-14 10:00:00       855.1804
+## 2021-07-14 11:00:00       562.5123
+## 2021-07-14 12:00:00       974.3433</code></pre>
+<p>All of this data is ‘latest’ as defined by CoinAPI - for historical data of symbols:</p>
+<pre class="r"><code>getHistoricalOHLCV(&quot;BITSTAMP_SPOT_BTC_USD&quot;, periodId = &quot;1MIN&quot;, timeStart = &quot;2016-01-01T00:00:00&quot;, limit = 25)</code></pre>
+<pre><code>## [1] &quot;BITSTAMP_SPOT_BTC_USD&quot;</code></pre>
+<pre class="r"><code>head(BITSTAMP_SPOT_BTC_USD)</code></pre>
+<pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
+<pre><code>##                     BITSTAMP_SPOT_BTC_USD.Open BITSTAMP_SPOT_BTC_USD.High
+## 2016-01-01 00:01:00                     430.89                     430.89
+## 2016-01-01 00:02:00                     430.89                     430.89
+## 2016-01-01 00:04:00                     430.19                     431.06
+## 2016-01-01 00:05:00                     431.06                     432.11
+## 2016-01-01 00:06:00                     432.53                     432.53
+## 2016-01-01 00:07:00                     432.52                     432.53
+##                     BITSTAMP_SPOT_BTC_USD.Low BITSTAMP_SPOT_BTC_USD.Close
+## 2016-01-01 00:01:00                    430.89                      430.89
+## 2016-01-01 00:02:00                    430.89                      430.89
+## 2016-01-01 00:04:00                    430.19                      431.06
+## 2016-01-01 00:05:00                    430.21                      430.54
+## 2016-01-01 00:06:00                    431.48                      432.52
+## 2016-01-01 00:07:00                    432.52                      432.53
+##                     BITSTAMP_SPOT_BTC_USD.Volume
+## 2016-01-01 00:01:00                   0.08063101
+## 2016-01-01 00:02:00                   0.14325720
+## 2016-01-01 00:04:00                   1.03216148
+## 2016-01-01 00:05:00                   5.55815570
+## 2016-01-01 00:06:00                   4.11731816
+## 2016-01-01 00:07:00                   0.41623259</code></pre>
+<p>As you can see, this is now showing 2016 data for BITSTAMP_SPOT_BTC_USD.</p>
+<p>For historical data of asset/base pairs aggregated across exchanges:</p>
+<pre class="r"><code>getHistoricalOHLCV(&quot;BTC&quot;, &quot;USD&quot;, periodId = &quot;1MIN&quot;, timeStart = &quot;2016-01-01T00:00:00&quot;, limit = 25)</code></pre>
+<pre><code>## [1] &quot;BTC_USD&quot;</code></pre>
+<pre class="r"><code>head(BTC_USD)</code></pre>
+<pre><code>## Warning: timezone of object (UTC) is different than current timezone ().</code></pre>
+<pre><code>##                     BTC_USD.Open BTC_USD.High BTC_USD.Low BTC_USD.Close
+## 2016-01-01 00:00:00       430.35       430.39      430.35        430.39
+## 2016-01-01 00:01:00       430.89       430.89      430.38        430.40
+## 2016-01-01 00:02:00       430.89       430.89      430.40        430.89
+## 2016-01-01 00:03:00       430.37       430.39      430.36        430.36
+## 2016-01-01 00:04:00       430.19       431.06      430.19        431.06
+## 2016-01-01 00:05:00       431.06       432.11      430.21        430.96
+##                     BTC_USD.Volume
+## 2016-01-01 00:00:00       0.072700
+## 2016-01-01 00:01:00       1.028431
+## 2016-01-01 00:02:00       1.776657
+## 2016-01-01 00:03:00      12.566300
+## 2016-01-01 00:04:00       2.985161
+## 2016-01-01 00:05:00      17.672316</code></pre>
+<p>And that’s about it!</p>
+<p>This winds up a quick whirlwind tour of how to get clean, OHLCV data in xts format using RCoinAPI, either from specific exchanges, or aggregated across exchanges. There is a lot more functionality, and full coverage of the CoinAPI functionality including Trades, Orderbooks, L3 and Quote data which the library covers - please see <a href="https://github.com/Ramshreyas/rcoinapi">https://github.com/Ramshreyas/rcoinapi</a> for the full documentation.</p>
+</div>
+</div>
