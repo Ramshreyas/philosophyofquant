@@ -32,10 +32,10 @@ menu:
     #   name: Archives
     #   url: /post/
     #   weight: 20
-    # - identifier: tags
-    #   name: Tags
-    #   url: /tags/
-    #   weight: 30
+    - identifier: tags
+      name: Tags
+      url: /tags/
+      weight: 30
     - identifier: categories
       name: Categories
       url: /categories/
